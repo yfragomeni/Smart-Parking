@@ -1,0 +1,147 @@
+[
+    {
+        "id": "9cc42f8e.a06c7",
+        "type": "tab",
+        "label": "SmartParking",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "5e1c992b.671418",
+        "type": "mqtt in",
+        "z": "9cc42f8e.a06c7",
+        "name": "",
+        "topic": "Cancela",
+        "qos": "2",
+        "broker": "e1f09b7.d80e868",
+        "x": 80,
+        "y": 180,
+        "wires": [
+            [
+                "23eba44b.6a15bc"
+            ]
+        ]
+    },
+    {
+        "id": "6600c6d5.744df8",
+        "type": "mqtt out",
+        "z": "9cc42f8e.a06c7",
+        "name": "",
+        "topic": "Cancela",
+        "qos": "",
+        "retain": "",
+        "broker": "e1f09b7.d80e868",
+        "x": 660,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "23eba44b.6a15bc",
+        "type": "function",
+        "z": "9cc42f8e.a06c7",
+        "name": "Status cancela",
+        "func": "client.publish(\"Cancela\", \"carro entrou\");\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 280,
+        "y": 160,
+        "wires": [
+            [
+                "a3130e02.0d0d3"
+            ]
+        ]
+    },
+    {
+        "id": "a19ae8f7.c137c8",
+        "type": "debug",
+        "z": "9cc42f8e.a06c7",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 670,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "a3130e02.0d0d3",
+        "type": "switch",
+        "z": "9cc42f8e.a06c7",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 470,
+        "y": 240,
+        "wires": [
+            [
+                "a19ae8f7.c137c8",
+                "6600c6d5.744df8",
+                "ddb01a.438aafe8"
+            ]
+        ]
+    },
+    {
+        "id": "ddb01a.438aafe8",
+        "type": "ui_text",
+        "z": "9cc42f8e.a06c7",
+        "group": "4389fa9a.44f514",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "Cancela",
+        "label": "Carro entrou",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 660,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "e1f09b7.d80e868",
+        "type": "mqtt-broker",
+        "z": "",
+        "name": "SmartParking",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": true,
+        "keepalive": "60",
+        "cleansession": true,
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": ""
+    },
+    {
+        "id": "4389fa9a.44f514",
+        "type": "ui_group",
+        "z": "",
+        "name": "Mensagens",
+        "tab": "b6fa686b.eab608",
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "b6fa686b.eab608",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Home",
+        "icon": "dashboard"
+    }
+]

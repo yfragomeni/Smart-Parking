@@ -1,0 +1,139 @@
+#include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+
+#include <Servo.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); 
+Servo myservo;  
+int carEnter = D0; 
+int carSpot = D4; 
+int pos;
+int led = D3;
+
+const char* ssid = "Everest";
+const char* password = "8KGP@!JeK28@";
+const char* mqtt_server = "broker.mqtt-dashboard.com";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+long lastMsg = 0;
+char msg[50];
+int value = 0;
+String inString = "";
+    
+void setup_wifi() {
+  delay(10);
+  Serial.println();
+  Serial.print("Conectando a ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  randomSeed(micros());
+
+  Serial.println("");
+  Serial.println("WiFi conectado");
+  Serial.println("Endereco IP: ");
+  Serial.println(WiFi.localIP());
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  inString="";
+  Serial.print("Mensagem chegou: [");
+  Serial.print(topic);
+  Serial.print("] ");
+  
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+    inString+=(char)payload[i];
+  }
+  Serial.println();
+}
+
+void reconnect() {
+  while (!client.connected()) {
+    Serial.print("Aguardando conexão MQTT...");
+    String clientId = "ESP8266Client-";
+    clientId += String(random(0xffff), HEX);
+    if (client.connect(clientId.c_str())) {
+      Serial.println("conectado");
+      client.publish("Cancela", "Cancela abrindo");
+      client.subscribe("Cancela");
+    } else {
+      Serial.print("falhou, rc=");
+      Serial.print(client.state());
+      Serial.println("tente novamente em 5 segundos");
+      delay(5000);
+    }
+  }
+}
+   
+void setup() {
+  Serial.begin (9600); 
+  myservo.attach(D6); 
+  setup_wifi();
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+  pinMode(led, OUTPUT);         
+  pinMode(carSpot , INPUT);    
+  pinMode(carEnter, INPUT); 
+  lcd.init();    
+  lcd.backlight();                                                
+  lcd.setCursor(0,0);  
+  lcd.print("Smart Parking");                    
+}
+
+void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  long now = millis();      
+    
+  int carEntry = digitalRead(carEnter);
+  if (carEntry == 0) {       
+      if (now - lastMsg > 2000) {
+        Serial.println("Publicando dados...");
+        client.publish("Cancela", "Carro entrou");
+        lastMsg = now;
+        ++value;   
+      } 
+                         
+      lcd.setCursor(0, 1);
+      lcd.print("Carro entrou");
+      for (pos = 180; pos >= 0; pos -= 1) {      
+        myservo.write(pos);                       
+        delay(5);
+      }
+      delay(2000);
+  
+      for (pos = 0; pos <= 180; pos += 1) { 
+        myservo.write(pos);
+        delay(5);
+     }
+    }
+    delay(1000);
+    lcd.clear();
+    int carParking = digitalRead(carSpot);
+
+    lcd.print("Smart Parking");  
+    
+    if (carParking == 0) {
+      digitalWrite(led, LOW);
+      lcd.setCursor(0,1);
+      lcd.print("Vaga ocupada"); 
+    }
+  
+    if (carParking == 1) {
+      digitalWrite(led, HIGH);
+      lcd.setCursor(0,1);
+      lcd.print("Vaga livre"); 
+    }
+  }  
